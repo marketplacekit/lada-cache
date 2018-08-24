@@ -111,7 +111,15 @@ class Reflector
     public function getTables()
     {
         // Get main table
-        $tables = [$this->queryBuilder->from];
+		$tables = [];
+		if(is_string($this->queryBuilder->from)) {
+			$tables[] = $this->queryBuilder->from;
+		} else {
+			$parser = new \PHPSQLParser\PHPSQLParser($this->queryBuilder->toSql());
+			array_walk_recursive($parser->parsed, function($v, $k) use(&$tables){
+				if($k === 'table') $tables[] = str_replace("`", "", $v);
+			});
+		}
 
         // Add possible join tables
         $joins = $this->queryBuilder->joins ? : [];
